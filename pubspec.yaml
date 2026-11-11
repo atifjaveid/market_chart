@@ -1,0 +1,31 @@
+name: market_chart
+description: "Free trading charts for Flutter: candlesticks, volume, indicators (MA, EMA, Bollinger Bands, RSI, MACD), crosshair, zoom and live updates."
+version: 0.2.0
+repository: https://github.com/atifjaveid/market_chart
+issue_tracker: https://github.com/atifjaveid/market_chart/issues
+topics:
+  - chart
+  - charts
+  - candlestick
+  - trading
+  - finance
+screenshots:
+  - description: Live BTC/USDT prices with an EMA, Bollinger Bands, RSI and MACD, a crosshair, zooming and scrolling.
+    path: screenshots/demo.gif
+  - description: The example app in the light theme, with live Binance prices and indicator switches.
+    path: screenshots/example_app.png
+  - description: The chart on a phone, with an EMA and RSI.
+    path: screenshots/phone.png
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.27.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
