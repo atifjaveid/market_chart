@@ -1,6 +1,6 @@
 name: market_chart
 description: "Free trading charts for Flutter: candlesticks, volume, indicators (MA, EMA, Bollinger Bands, RSI, MACD), crosshair, zoom and live updates."
-version: 0.2.0
+version: 0.2.1
 repository: https://github.com/atifjaveid/market_chart
 issue_tracker: https://github.com/atifjaveid/market_chart/issues
 topics:

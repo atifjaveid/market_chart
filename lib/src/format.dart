@@ -58,32 +58,69 @@ String defaultTimeFormatter(
   return time.month == 1 && time.day == 1 ? '${time.year}' : date;
 }
 
-/// Formats a price with [precision] decimals and comma thousands separators,
-/// for example `64,250.50`.
-String formatPrice(double value, int precision) {
+/// Turns a price (or an indicator value) into a label with [precision]
+/// decimals. See [formatPrice] and `MarketChart.priceFormatter`.
+typedef MarketChartPriceFormatter = String Function(
+  double value,
+  int precision,
+);
+
+/// Turns a volume into a short label. See [formatCompact] and
+/// `MarketChart.volumeFormatter`.
+typedef MarketChartVolumeFormatter = String Function(double value);
+
+/// Formats a price with [precision] decimals and thousands separators, for
+/// example `64,250.50`.
+///
+/// For other number styles, change the separators. For example
+/// `formatPrice(64250.5, 2, thousandsSeparator: '.', decimalSeparator: ',')`
+/// gives `64.250,50`, and an empty [thousandsSeparator] leaves them out.
+String formatPrice(
+  double value,
+  int precision, {
+  String thousandsSeparator = ',',
+  String decimalSeparator = '.',
+}) {
   if (!value.isFinite) return '-';
   final fixed = value.abs().toStringAsFixed(precision);
   final dot = fixed.indexOf('.');
   final whole = dot == -1 ? fixed : fixed.substring(0, dot);
   final buffer = StringBuffer();
   for (var i = 0; i < whole.length; i++) {
-    if (i > 0 && (whole.length - i) % 3 == 0) buffer.write(',');
+    if (i > 0 && (whole.length - i) % 3 == 0) buffer.write(thousandsSeparator);
     buffer.write(whole[i]);
   }
-  if (dot != -1) buffer.write(fixed.substring(dot));
-  return value < 0 ? '-$buffer' : buffer.toString();
+  if (dot != -1) {
+    buffer
+      ..write(decimalSeparator)
+      ..write(fixed.substring(dot + 1));
+  }
+  // No minus sign on values that round to zero, such as -0.001 shown as 0.00.
+  final negative = value < 0 && fixed.contains(RegExp('[1-9]'));
+  return negative ? '-$buffer' : buffer.toString();
 }
 
 /// Formats a large number briefly, for example `1.25K`, `3.40M` or `2.10B`.
-String formatCompact(double value) {
+///
+/// [decimalSeparator] replaces the `.`, for example `1,25K`.
+String formatCompact(double value, {String decimalSeparator = '.'}) {
   if (!value.isFinite) return '-';
   final size = value.abs();
-  if (size >= 1e9) return '${(value / 1e9).toStringAsFixed(2)}B';
-  if (size >= 1e6) return '${(value / 1e6).toStringAsFixed(2)}M';
-  if (size >= 1e3) return '${(value / 1e3).toStringAsFixed(2)}K';
-  return value == value.roundToDouble()
-      ? value.toStringAsFixed(0)
-      : value.toStringAsFixed(2);
+  final String text;
+  if (size >= 1e9) {
+    text = '${(value / 1e9).toStringAsFixed(2)}B';
+  } else if (size >= 1e6) {
+    text = '${(value / 1e6).toStringAsFixed(2)}M';
+  } else if (size >= 1e3) {
+    text = '${(value / 1e3).toStringAsFixed(2)}K';
+  } else {
+    text = value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(2);
+  }
+  return decimalSeparator == '.'
+      ? text
+      : text.replaceAll('.', decimalSeparator);
 }
 
 /// Picks how many decimals to show for prices around [price]: 2 for prices of

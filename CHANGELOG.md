@@ -1,3 +1,11 @@
+## 0.2.1
+
+* New `priceFormatter` and `volumeFormatter` options on `MarketChart` for other number styles, such as `64.250,50`. `formatPrice` takes `thousandsSeparator` and `decimalSeparator`, and `formatCompact` takes `decimalSeparator`.
+* `MarketChartTheme.copyWith(fontFamily: null)` now goes back to the app's font. Before, `null` kept the old font.
+* Values that round to zero no longer show a minus sign (`0.00`, not `-0.00`), for example in the MACD panel.
+* Documentation for the `MarketChartController` and `IndicatorCalculator` constructors.
+* README: a live web demo, a comparison with other chart packages, and badges.
+
 ## 0.2.0
 
 **Indicators**

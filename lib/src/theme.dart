@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+// Marks a copyWith argument that wasn't passed, so null can mean "none".
+const Object _unchanged = Object();
+
 /// Colours and text size for a `MarketChart`.
 ///
 /// Use [MarketChartTheme.dark] or [MarketChartTheme.light] as a starting point
@@ -112,6 +115,8 @@ class MarketChartTheme {
       );
 
   /// Returns a copy with the given fields replaced.
+  ///
+  /// Pass `fontFamily: null` to go back to the app's font.
   MarketChartTheme copyWith({
     Color? backgroundColor,
     Color? bullColor,
@@ -124,24 +129,29 @@ class MarketChartTheme {
     Color? lineColor,
     double? volumeOpacity,
     double? fontSize,
-    String? fontFamily,
+    Object? fontFamily = _unchanged,
     List<Color>? indicatorColors,
-  }) =>
-      MarketChartTheme(
-        backgroundColor: backgroundColor ?? this.backgroundColor,
-        bullColor: bullColor ?? this.bullColor,
-        bearColor: bearColor ?? this.bearColor,
-        gridColor: gridColor ?? this.gridColor,
-        textColor: textColor ?? this.textColor,
-        crosshairColor: crosshairColor ?? this.crosshairColor,
-        labelBackgroundColor: labelBackgroundColor ?? this.labelBackgroundColor,
-        labelTextColor: labelTextColor ?? this.labelTextColor,
-        lineColor: lineColor ?? this.lineColor,
-        volumeOpacity: volumeOpacity ?? this.volumeOpacity,
-        fontSize: fontSize ?? this.fontSize,
-        fontFamily: fontFamily ?? this.fontFamily,
-        indicatorColors: indicatorColors ?? this.indicatorColors,
-      );
+  }) {
+    assert(fontFamily == _unchanged || fontFamily is String?,
+        'fontFamily must be a String or null');
+    return MarketChartTheme(
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      bullColor: bullColor ?? this.bullColor,
+      bearColor: bearColor ?? this.bearColor,
+      gridColor: gridColor ?? this.gridColor,
+      textColor: textColor ?? this.textColor,
+      crosshairColor: crosshairColor ?? this.crosshairColor,
+      labelBackgroundColor: labelBackgroundColor ?? this.labelBackgroundColor,
+      labelTextColor: labelTextColor ?? this.labelTextColor,
+      lineColor: lineColor ?? this.lineColor,
+      volumeOpacity: volumeOpacity ?? this.volumeOpacity,
+      fontSize: fontSize ?? this.fontSize,
+      fontFamily: identical(fontFamily, _unchanged)
+          ? this.fontFamily
+          : fontFamily as String?,
+      indicatorColors: indicatorColors ?? this.indicatorColors,
+    );
+  }
 
   @override
   bool operator ==(Object other) =>

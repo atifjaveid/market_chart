@@ -1,5 +1,11 @@
 # market_chart
 
+[![pub package](https://img.shields.io/pub/v/market_chart.svg)](https://pub.dev/packages/market_chart)
+[![CI](https://github.com/atifjaveid/market_chart/actions/workflows/ci.yml/badge.svg)](https://github.com/atifjaveid/market_chart/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+**[Try the live demo in your browser](https://atifjaveid.github.io/market_chart/)**: live Binance prices with indicators, built from the [example app](example).
+
 Free, open-source trading charts for Flutter. Candlesticks, line and area charts, volume, indicators, a crosshair, zoom and scrolling, and live price updates, with no licence key and no dependencies beyond Flutter.
 
 ![Live BTC/USDT prices from Binance with an EMA, Bollinger Bands, RSI and MACD, a crosshair, zooming and scrolling](screenshots/demo.gif)
@@ -19,13 +25,28 @@ Free, open-source trading charts for Flutter. Candlesticks, line and area charts
 - **Indicator maths on its own** too, for alerts or trading logic.
 - **Clear axes:** time labels at round times (14:00, 14:15…) with dates where days start, and prices with as many decimals as the market uses.
 - **Themes:** light and dark built in, every colour adjustable, and the app's font by default.
+- **Number formats:** `64,250.50` by default, or your own, such as `64.250,50`.
 - Works on Android, iOS, web, Windows, macOS and Linux.
+
+## How it compares
+
+Other Flutter packages with candlestick charts, as of November 2026:
+
+| | market_chart | [fl_chart](https://pub.dev/packages/fl_chart) | [syncfusion_flutter_charts](https://pub.dev/packages/syncfusion_flutter_charts) | [k_chart](https://pub.dev/packages/k_chart) | [candlesticks](https://pub.dev/packages/candlesticks) | [interactive_chart](https://pub.dev/packages/interactive_chart) |
+|---|---|---|---|---|---|---|
+| Licence | MIT | MIT | Commercial, or free community licence | BSD-2 | BSD-3 | MIT |
+| Latest release | 2026 | 2026 | 2026 | May 2023 | May 2026 | June 2025 |
+| Built-in indicators | SMA, EMA, Bollinger Bands, RSI, MACD (checked against TA-Lib) | None | 12, including ATR and Stochastic | MA, BOLL, MACD, KDJ, RSI, WR, CCI | None | Lines you work out yourself |
+| Loads older history while scrolling | Yes | No | Yes | Yes | Yes | No |
+| Dependencies | None | 2 | 4 | None | None | 1 |
+
+fl_chart and Syncfusion cover many kinds of charts; market_chart only does trading charts. If you need indicators such as ATR or Stochastic today, Syncfusion has them, under its own licence.
 
 ## Getting started
 
 ```yaml
 dependencies:
-  market_chart: ^0.2.0
+  market_chart: ^0.2.1
 ```
 
 ```dart
@@ -233,6 +254,8 @@ The results are checked against [TA-Lib](https://ta-lib.org) on 150 days of real
 | `theme` | matches app brightness | `MarketChartTheme.dark`, `.light`, or your own via `copyWith` |
 | `pricePrecision` | from the data | Decimals shown in prices (by default as many as the prices have) |
 | `timeFormatter` | `defaultTimeFormatter` | Labels for the time axis and crosshair |
+| `priceFormatter` | `formatPrice` | Labels for prices and indicator values (`64,250.50`) |
+| `volumeFormatter` | `formatCompact` | Labels for volumes (`1.25K`) |
 | `initialCandleWidth` | `8` | Starting zoom, in pixels per candle |
 | `minCandleWidth` / `maxCandleWidth` | `2` / `48` | Zoom limits |
 | `onCrosshairChanged` | | Called with the candle under the crosshair, or `null` |
@@ -248,9 +271,27 @@ MarketChart(
 )
 ```
 
+### Number formats
+
+Prices show as `64,250.50` by default. For other styles, pass your own formatters. Declare them outside `build` (as top-level or static functions), so the chart can tell when they change:
+
+```dart
+String germanPrice(double value, int precision) => formatPrice(value, precision,
+    thousandsSeparator: '.', decimalSeparator: ','); // 64.250,50
+
+String germanVolume(double value) =>
+    formatCompact(value, decimalSeparator: ','); // 1,25K
+
+MarketChart(
+  candles: candles,
+  priceFormatter: germanPrice,
+  volumeFormatter: germanVolume,
+)
+```
+
 ## Example
 
-The [example app](example) shows live prices from Binance. Pick a market (BTC, ETH, SOL, XRP or DOGE against USDT) and a timeframe from 1 minute to 1 day, switch indicators on and off, scroll back to load older history, and tap **Latest** to come back. If Binance can't be reached, it shows simulated prices instead.
+The [example app](example) shows live prices from Binance. [Try it in your browser](https://atifjaveid.github.io/market_chart/), or run it yourself. Pick a market (BTC, ETH, SOL, XRP or DOGE against USDT) and a timeframe from 1 minute to 1 day, switch indicators on and off, scroll back to load older history, and tap **Latest** to come back. If Binance can't be reached, it shows simulated prices instead.
 
 ```sh
 cd example

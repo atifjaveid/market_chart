@@ -63,6 +63,24 @@ void main() {
       expect(formatCompact(2.1e9), '2.10B');
     });
 
+    test('formatPrice and formatCompact take other separators', () {
+      String german(double value, int precision) =>
+          formatPrice(value, precision,
+              thousandsSeparator: '.', decimalSeparator: ',');
+      expect(german(64250.5, 2), '64.250,50');
+      expect(german(-1234567, 0), '-1.234.567');
+      expect(formatPrice(1234567.891, 2, thousandsSeparator: ''), '1234567.89');
+      expect(formatPrice(1234.5, 1, thousandsSeparator: ' '), '1 234.5');
+      expect(formatCompact(1250, decimalSeparator: ','), '1,25K');
+      expect(formatCompact(950, decimalSeparator: ','), '950');
+    });
+
+    test('formatPrice shows no minus sign on values that round to zero', () {
+      expect(formatPrice(-0.001, 2), '0.00');
+      expect(formatPrice(-0.0, 0), '0');
+      expect(formatPrice(-0.005, 3), '-0.005');
+    });
+
     test('autoPrecision', () {
       expect(autoPrecision(64000), 2);
       expect(autoPrecision(1.5), 2);
@@ -99,6 +117,10 @@ void main() {
     expect(inter.textStyle.fontFamily, 'Inter');
     expect(inter, isNot(MarketChartTheme.dark));
     expect(inter, MarketChartTheme.dark.copyWith(fontFamily: 'Inter'));
+    // Leaving it out keeps it; null goes back to the app's font.
+    expect(inter.copyWith(fontSize: 12).fontFamily, 'Inter');
+    expect(inter.copyWith(fontFamily: null).fontFamily, isNull);
+    expect(inter.copyWith(fontFamily: null), MarketChartTheme.dark);
   });
 
   group('niceTicks', () {
@@ -199,6 +221,45 @@ void main() {
       await gesture.up();
       await tester.pump();
       expect(reported.last, isNull);
+    });
+
+    testWidgets('uses the price and volume formatters', (tester) async {
+      final prices = <double>[];
+      final volumes = <double>[];
+      String price(double value, int precision) {
+        prices.add(value);
+        return formatPrice(value, precision,
+            thousandsSeparator: '.', decimalSeparator: ',');
+      }
+
+      String volume(double value) {
+        volumes.add(value);
+        return formatCompact(value, decimalSeparator: ',');
+      }
+
+      final candles = [
+        for (final c in sampleCandles(50))
+          c.copyWith(
+              open: c.open * 100,
+              high: c.high * 100,
+              low: c.low * 100,
+              close: c.close * 100),
+      ];
+      await tester.pumpWidget(host(MarketChart(
+        candles: candles,
+        indicators: const [MovingAverage.sma(5), Rsi()],
+        priceFormatter: price,
+        volumeFormatter: volume,
+      )));
+      expect(prices, contains(candles.last.close)); // Latest price label.
+      expect(prices, contains(candles.last.open)); // Legend.
+      expect(volumes, contains(candles.last.volume)); // Legend.
+      final semantics = tester.ensureSemantics();
+      await tester.pump();
+      expect(tester.getSemantics(find.bySemanticsLabel('Price chart')).value,
+          'Latest price ${price(candles.last.close, 2)}');
+      semantics.dispose();
+      expect(price(candles.last.close, 2), contains(','));
     });
 
     testWidgets('dragging and mouse-wheel zoom do not throw', (tester) async {

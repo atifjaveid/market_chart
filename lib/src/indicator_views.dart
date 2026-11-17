@@ -188,7 +188,8 @@ class IndicatorCanvas {
   return low > high ? null : (low, high);
 }
 
-String _valueAt(List<double?> values, int index, int precision) {
+String _valueAt(List<double?> values, int index, int precision,
+    MarketChartPriceFormatter format) {
   final value = index >= 0 && index < values.length ? values[index] : null;
   return value == null ? '–' : formatPrice(value, precision);
 }
@@ -234,8 +235,8 @@ abstract class IndicatorView {
   void paint(IndicatorCanvas canvas, List<Color> colors);
 
   /// The legend text for the candle at [index].
-  List<InlineSpan> legend(
-      int index, TextStyle style, int precision, List<Color> colors);
+  List<InlineSpan> legend(int index, TextStyle style, int precision,
+      List<Color> colors, MarketChartPriceFormatter format);
 }
 
 /// An indicator with a panel of its own.
@@ -306,12 +307,12 @@ class MovingAverageView extends IndicatorView {
       canvas.line(values, colors[0], indicator.width);
 
   @override
-  List<InlineSpan> legend(
-          int index, TextStyle style, int precision, List<Color> colors) =>
+  List<InlineSpan> legend(int index, TextStyle style, int precision,
+          List<Color> colors, MarketChartPriceFormatter format) =>
       [
         TextSpan(text: '${indicator.label} '),
         TextSpan(
-          text: _valueAt(values, index, precision),
+          text: _valueAt(values, index, precision, format),
           style: style.copyWith(color: colors[0]),
         ),
       ];
@@ -359,15 +360,15 @@ class BollingerBandsView extends IndicatorView {
   }
 
   @override
-  List<InlineSpan> legend(
-      int index, TextStyle style, int precision, List<Color> colors) {
+  List<InlineSpan> legend(int index, TextStyle style, int precision,
+      List<Color> colors, MarketChartPriceFormatter format) {
     final value = style.copyWith(color: colors[0]);
     return [
       TextSpan(text: '${indicator.label} '),
       TextSpan(
-        text: '${_valueAt(_calculator.upper, index, precision)} '
-            '${_valueAt(_calculator.middle, index, precision)} '
-            '${_valueAt(_calculator.lower, index, precision)}',
+        text: '${_valueAt(_calculator.upper, index, precision, format)} '
+            '${_valueAt(_calculator.middle, index, precision, format)} '
+            '${_valueAt(_calculator.lower, index, precision, format)}',
         style: value,
       ),
     ];
@@ -429,12 +430,12 @@ class RsiView extends PanelView {
       canvas.line(_calculator.values, colors[0], indicator.width);
 
   @override
-  List<InlineSpan> legend(
-          int index, TextStyle style, int precision, List<Color> colors) =>
+  List<InlineSpan> legend(int index, TextStyle style, int precision,
+          List<Color> colors, MarketChartPriceFormatter format) =>
       [
         TextSpan(text: '${indicator.label} '),
         TextSpan(
-          text: _valueAt(_calculator.values, index, this.precision),
+          text: _valueAt(_calculator.values, index, this.precision, format),
           style: style.copyWith(color: colors[0]),
         ),
       ];
@@ -524,8 +525,8 @@ class MacdView extends PanelView {
   }
 
   @override
-  List<InlineSpan> legend(
-      int index, TextStyle style, int precision, List<Color> colors) {
+  List<InlineSpan> legend(int index, TextStyle style, int precision,
+      List<Color> colors, MarketChartPriceFormatter format) {
     final histogram = index >= 0 && index < _calculator.histogram.length
         ? _calculator.histogram[index]
         : null;
@@ -534,17 +535,17 @@ class MacdView extends PanelView {
     return [
       TextSpan(text: '${indicator.label} '),
       TextSpan(
-        text: _valueAt(_calculator.macd, index, this.precision),
+        text: _valueAt(_calculator.macd, index, this.precision, format),
         style: style.copyWith(color: colors[0]),
       ),
       const TextSpan(text: ' '),
       TextSpan(
-        text: _valueAt(_calculator.signal, index, this.precision),
+        text: _valueAt(_calculator.signal, index, this.precision, format),
         style: style.copyWith(color: colors[1]),
       ),
       const TextSpan(text: ' '),
       TextSpan(
-        text: _valueAt(_calculator.histogram, index, this.precision),
+        text: _valueAt(_calculator.histogram, index, this.precision, format),
         style: style.copyWith(color: histogramColor),
       ),
     ];
