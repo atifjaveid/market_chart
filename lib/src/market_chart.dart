@@ -1,7 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
-import 'package:flutter/material.dart';
+// Only for Theme.of, to match the app's brightness. material.dart is
+// deprecated from Flutter 3.50 in favour of the material_ui package, but
+// apps that import it still provide this Theme.
+// ignore: deprecated_member_use
+import 'package:flutter/material.dart' show Theme;
+import 'package:flutter/widgets.dart';
 
 import 'candle.dart';
 import 'candle_diff.dart';
