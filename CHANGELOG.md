@@ -1,3 +1,7 @@
+## 0.2.2
+
+* No analyzer notes on Flutter versions where `package:flutter/material.dart` is deprecated. The chart now uses it only to read the app's `Theme`.
+
 ## 0.2.0
 
 **Indicators**
