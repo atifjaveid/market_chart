@@ -1,12 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/gestures.dart';
-// Only for Theme.of, to match the app's brightness. material.dart is
-// deprecated from Flutter 3.50 in favour of the material_ui package, but
-// apps that import it still provide this Theme.
-// ignore: deprecated_member_use
-import 'package:flutter/material.dart' show Theme;
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 
 import 'candle.dart';
 import 'candle_diff.dart';
@@ -38,9 +33,6 @@ import 'theme.dart';
 /// One controller can be used by one chart at a time. Dispose it when you no
 /// longer need it.
 class MarketChartController extends ChangeNotifier {
-  /// Creates a controller. Pass it to a [MarketChart] to use it.
-  MarketChartController();
-
   _MarketChartState? _chart;
   bool _isAtLatest = true;
 
@@ -109,8 +101,6 @@ class MarketChart extends StatefulWidget {
     this.theme,
     this.pricePrecision,
     this.timeFormatter = defaultTimeFormatter,
-    this.priceFormatter = formatPrice,
-    this.volumeFormatter = formatCompact,
     this.initialCandleWidth = 8,
     this.minCandleWidth = 2,
     this.maxCandleWidth = 48,
@@ -155,24 +145,6 @@ class MarketChart extends StatefulWidget {
 
   /// Turns candle times into axis and crosshair labels.
   final MarketChartTimeFormatter timeFormatter;
-
-  /// Turns prices and indicator values into labels, for the axis, the
-  /// legends and the crosshair. The default, [formatPrice], writes
-  /// `64,250.50`. For other number styles:
-  ///
-  /// ```dart
-  /// priceFormatter: (value, precision) => formatPrice(value, precision,
-  ///     thousandsSeparator: '.', decimalSeparator: ','), // 64.250,50
-  /// ```
-  ///
-  /// Use a function that isn't created in `build` (a top-level or static
-  /// function, or one stored in a field), so the chart can tell when it
-  /// changes.
-  final MarketChartPriceFormatter priceFormatter;
-
-  /// Turns volumes into labels, for the legend and the crosshair. The
-  /// default, [formatCompact], writes `1.25K`.
-  final MarketChartVolumeFormatter volumeFormatter;
 
   /// Starting width of one candle in pixels, including the gap next to it.
   final double initialCandleWidth;
@@ -501,11 +473,9 @@ class _MarketChartState extends State<MarketChart>
   }
 
   double _axisWidthFor(int precision, TextStyle style) {
-    final format = widget.priceFormatter;
-    final key = (_dataVersion, _indicatorsVersion, precision, style, format);
+    final key = (_dataVersion, _indicatorsVersion, precision, style);
     if (key != _axisWidthKey) {
-      _axisWidth =
-          measureAxisWidth(_data, precision, style, format: format, panels: [
+      _axisWidth = measureAxisWidth(_data, precision, style, panels: [
         for (final view in _views)
           if (view is PanelView) view,
       ]);
@@ -553,7 +523,7 @@ class _MarketChartState extends State<MarketChart>
         label: 'Price chart',
         value: data.isEmpty
             ? 'No data'
-            : 'Latest price ${widget.priceFormatter(data.last.close, precision)}',
+            : 'Latest price ${formatPrice(data.last.close, precision)}',
         child: Listener(
           onPointerSignal: _onPointerSignal,
           child: MouseRegion(
@@ -579,8 +549,6 @@ class _MarketChartState extends State<MarketChart>
                   theme: theme,
                   precision: precision,
                   timeFormatter: widget.timeFormatter,
-                  priceFormatter: widget.priceFormatter,
-                  volumeFormatter: widget.volumeFormatter,
                   crosshair: _crosshair,
                   indicators: _views,
                   indicatorsVersion: _indicatorsVersion,

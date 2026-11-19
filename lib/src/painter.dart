@@ -46,15 +46,14 @@ double measureAxisWidth(
   int precision,
   TextStyle style, {
   List<PanelView> panels = const [],
-  MarketChartPriceFormatter format = formatPrice,
 }) {
   var largest = 0.0;
   for (final candle in candles) {
     largest = math.max(largest, candle.high.abs());
   }
-  var width = textWidth(format(largest * 1.1, precision), style);
+  var width = textWidth(formatPrice(largest * 1.1, precision), style);
   for (final panel in panels) {
-    final label = format(-panel.largestValue * 1.1, panel.precision);
+    final label = formatPrice(-panel.largestValue * 1.1, panel.precision);
     width = math.max(width, textWidth(label, style));
   }
   return math.max(48, width + 16);
@@ -76,8 +75,6 @@ class MarketChartPainter extends CustomPainter {
     required this.theme,
     required this.precision,
     required this.timeFormatter,
-    this.priceFormatter = formatPrice,
-    this.volumeFormatter = formatCompact,
     this.crosshair,
     this.indicators = const [],
     this.indicatorsVersion = 0,
@@ -92,8 +89,6 @@ class MarketChartPainter extends CustomPainter {
   final MarketChartTheme theme;
   final int precision;
   final MarketChartTimeFormatter timeFormatter;
-  final MarketChartPriceFormatter priceFormatter;
-  final MarketChartVolumeFormatter volumeFormatter;
   final Offset? crosshair;
   final List<IndicatorView> indicators;
   final int indicatorsVersion;
@@ -230,7 +225,7 @@ class MarketChartPainter extends CustomPainter {
     }
     canvas.restore();
     if (showLatest) {
-      _axisLabel(canvas, latestY, priceFormatter(latest.close, precision),
+      _axisLabel(canvas, latestY, formatPrice(latest.close, precision),
           latestColor, theme.labelTextColor, layout.pricePane);
     }
 
@@ -254,8 +249,8 @@ class MarketChartPainter extends CustomPainter {
         canvas,
         TextSpan(
           style: theme.textStyle,
-          children: panels[k].legend(selected, theme.textStyle, precision,
-              colors[panels[k]]!, priceFormatter),
+          children: panels[k]
+              .legend(selected, theme.textStyle, precision, colors[panels[k]]!),
         ),
         Offset(panel.left + 8, panel.top + 4),
       );
@@ -281,7 +276,7 @@ class MarketChartPainter extends CustomPainter {
       canvas.drawLine(
           Offset(layout.plot.left, y), Offset(layout.plot.right, y), grid);
       if (reservedYs.any((r) => (r - y).abs() < _labelHeight)) continue;
-      drawText(canvas, priceFormatter(value, precision),
+      drawText(canvas, formatPrice(value, precision),
           Offset(layout.priceAxis.left + 8, y), theme.textStyle,
           align: Alignment.centerLeft);
     }
@@ -474,7 +469,7 @@ class MarketChartPainter extends CustomPainter {
         canvas.drawLine(Offset(panel.left, y), Offset(panel.right, y), grid);
       }
       if (reservedY != null && (reservedY - y).abs() < _labelHeight) continue;
-      drawText(canvas, priceFormatter(value, decimals),
+      drawText(canvas, formatPrice(value, decimals),
           Offset(layout.priceAxis.left + 8, y), theme.textStyle,
           align: Alignment.centerLeft);
     }
@@ -523,16 +518,16 @@ class MarketChartPainter extends CustomPainter {
     String? label;
     Rect? bounds;
     if (layout.pricePane.contains(point)) {
-      label = priceFormatter(priceScale.valueAt(point.dy), precision);
+      label = formatPrice(priceScale.valueAt(point.dy), precision);
       bounds = layout.pricePane;
     } else if (volumePane != null && volumePane.contains(point)) {
-      label = volumeFormatter(
+      label = formatCompact(
           (volumePane.bottom - point.dy) / volumePane.height * maxVolume);
       bounds = volumePane;
     } else {
       for (var k = 0; k < panelScales.length; k++) {
         if (layout.panels[k].contains(point)) {
-          label = priceFormatter(
+          label = formatPrice(
               panelScales[k].valueAt(point.dy), panels[k].precision);
           bounds = layout.panels[k];
         }
@@ -562,23 +557,23 @@ class MarketChartPainter extends CustomPainter {
     final change = c.open == 0 ? 0.0 : (c.close - c.open) / c.open * 100;
     final sign = change >= 0 ? '+' : '';
     final volume =
-        layout.volumePane == null ? '' : '  Vol ${volumeFormatter(c.volume)}';
+        layout.volumePane == null ? '' : '  Vol ${formatCompact(c.volume)}';
     final children = <InlineSpan>[
       const TextSpan(text: 'O '),
-      TextSpan(text: priceFormatter(c.open, precision), style: value),
+      TextSpan(text: formatPrice(c.open, precision), style: value),
       const TextSpan(text: '  H '),
-      TextSpan(text: priceFormatter(c.high, precision), style: value),
+      TextSpan(text: formatPrice(c.high, precision), style: value),
       const TextSpan(text: '  L '),
-      TextSpan(text: priceFormatter(c.low, precision), style: value),
+      TextSpan(text: formatPrice(c.low, precision), style: value),
       const TextSpan(text: '  C '),
-      TextSpan(text: priceFormatter(c.close, precision), style: value),
+      TextSpan(text: formatPrice(c.close, precision), style: value),
       TextSpan(text: '  $sign${change.toStringAsFixed(2)}%', style: value),
       TextSpan(text: volume),
     ];
     for (var k = 0; k < overlays.length; k++) {
       children.add(TextSpan(text: k == 0 ? '\n' : '   '));
-      children.addAll(overlays[k].legend(
-          index, label, precision, colors[overlays[k]]!, priceFormatter));
+      children.addAll(
+          overlays[k].legend(index, label, precision, colors[overlays[k]]!));
     }
     _paintLegend(canvas, TextSpan(style: label, children: children),
         Offset(layout.plot.left + 8, layout.plot.top + 6));
@@ -638,8 +633,6 @@ class MarketChartPainter extends CustomPainter {
       old.theme != theme ||
       old.precision != precision ||
       old.timeFormatter != timeFormatter ||
-      old.priceFormatter != priceFormatter ||
-      old.volumeFormatter != volumeFormatter ||
       old.crosshair != crosshair ||
       old.layout != layout;
 }

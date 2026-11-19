@@ -21,10 +21,6 @@ import 'package:flutter/foundation.dart';
 /// Results are null until there are enough values: for example the first 19
 /// results of a 20-period average.
 abstract class IndicatorCalculator {
-  /// Creates a calculator with no results yet. Call [update] to work them
-  /// out.
-  IndicatorCalculator();
-
   /// How many values the results cover: the length of the list passed to the
   /// last [update].
   int get length;
